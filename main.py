@@ -1,6 +1,5 @@
 
 
-
 class BookRegistry(object):
     def __init__(self):
         self.book_id_to_weight = dict()
@@ -10,8 +9,7 @@ class BookRegistry(object):
         self.book_id_to_weight[book_id] = weight
 
     def update_library(self, book_id, library_id):
-        library = self.book_id_to_library.get(book_id, list())
-        self.book_id_to_weight[book_id] = library.append(library_id)
+        self.book_id_to_library.setdefault(book_id, list()).append(library_id)
 
     def book_ids(self):
         """
@@ -63,7 +61,7 @@ class LibraryRegisry(object):
         score = sum of book score * relative delay * concurrency factor TODO: improvement potential
         """
         score = sum(map(lambda book_id: self.book_registry.score(book_id), self.books[library_id]))
-        score *= self.signup_times[library_id] / max(self.signup_times.values())
+        # score *= 1 - self.signup_times[library_id] / float(max(self.signup_times.values()))
         score *= self.concurrency_factors[library_id]
 
         return score
@@ -80,7 +78,7 @@ class LibraryRegisry(object):
         """
         return self.concurrency_factors[library_id]
 
-    def books(self, library_id):
+    def books_in_library(self, library_id):
         """
         returns the books in the library
         """
@@ -89,7 +87,8 @@ class LibraryRegisry(object):
     def remove_books(self, book_id_list):
         for books in self.books.values():
             for book_id in book_id_list:
-                books.remove(book_id)  # TODO: improvement potential -- reorder libraries to register next!
+                if book_id in books:
+                    books.remove(book_id)  # TODO: improvement potential -- reorder libraries to register next!
 
     def library_ids_in_order(self):
         """
@@ -116,7 +115,7 @@ class Scanner(object):
         self.library_queue = self.library_registry.library_ids_in_order()
         self.submitted_book_ids = set()
 
-    def next(self):
+    def next_day(self):
         print 'day {}'.format(self.day)
 
         if self.day == self.days:
@@ -131,15 +130,21 @@ class Scanner(object):
                 self.library_order.append(self.in_registration)
                 self.library_books[self.in_registration] = list()
 
-            library_id = self.library_queue.next()
-            self.in_registration = library_id
-            self.in_registration_time_left = self.library_registry.time_in_registration()
+            try:
+                library_id = self.library_queue.next()
+                self.in_registration = library_id
+                self.in_registration_time_left = self.library_registry.time_in_registration(library_id)
+            except StopIteration:
+                # no more libraries to register
+                self.in_registration = None
+                self.in_registration_time_left = self.days
         else:
             self.in_registration_time_left -= 1
 
         # append books to submit from each library in their order TODO: improvement potential
         for library_id in self.library_order:
-            books = self.book_registry.order(self.library_registry.books(library_id))
+            books = self.library_registry.books_in_library(library_id)
+            books = self.book_registry.order(books)
             books = books[:self.library_registry.concurrency_factor(library_id)]
 
             self.library_registry.remove_books(books)
@@ -160,16 +165,19 @@ if __name__ == '__main__':
         _, _, days = map(int, data.next().split())
 
         for book_id, book_weight in enumerate(data.next().split()):
-            book_registry.add_book(book_id, int(book_weight))
+            book_registry.add_book(str(book_id), int(book_weight))
 
         for library_id, line in enumerate(data):
             _, signup_time, concurrency_factor = map(int, line.split())
-            books = set(map(int, data.next().split()))
+            books = set(data.next().split())
             for book in books:
                 book_registry.update_library(book, library_id)
 
             library_registry.add_library(library_id, signup_time, concurrency_factor, books)
 
     scanner = Scanner(book_registry, library_registry, days)
-    while True:
-        scanner.next()
+    for _ in range(days):
+        scanner.next_day()
+
+    # for library_id in library_registry.library_ids_in_order():
+    #     print library_id, library_registry.score(library_id)
