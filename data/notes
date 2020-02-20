@@ -1,0 +1,15 @@
+-- book score
+1. tf/idf
+
+-- library score
+1. sum of book scores plus average of registration time
+
+
+1. compute book scores
+2. compute library scores
+3. rank libraries
+library by library
+4. submit books in library ordered by importance that have not yet been submitted
+
+
+improvement: backtrace submitted books - recompute submission of
