@@ -49,6 +49,7 @@ class LibraryRegisry(object):
         self.signup_times = dict()
         self.concurrency_factors = dict()
         self.books = dict()
+        self.removed_books = set()
 
     def add_library(self, library_id, signup_time, concurrency_factor, books):
         self.signup_times[library_id] = signup_time
@@ -82,13 +83,11 @@ class LibraryRegisry(object):
         """
         returns the books in the library
         """
-        return self.books[library_id]
+        return self.books[library_id] - self.removed_books
 
     def remove_books(self, book_id_list):
-        for books in self.books.values():
-            for book_id in book_id_list:
-                if book_id in books:
-                    books.remove(book_id)  # TODO: improvement potential -- reorder libraries to register next!
+        self.removed_books.update(book_id_list)
+        # TODO: improvement potential -- reorder libraries
 
     def library_ids_in_order(self):
         """
@@ -170,7 +169,7 @@ if __name__ == '__main__':
     book_registry = BookRegistry()
     library_registry = LibraryRegisry(book_registry)
 
-    file_name = 'data/f_libraries_of_the_world.txt'
+    file_name = 'data/d_tough_choices.txt'
     with open(file_name) as data:
         _, _, days = map(int, data.next().split())
 
