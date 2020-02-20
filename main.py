@@ -69,9 +69,10 @@ class LibraryRegisry(object):
         """
         return self.books[library_id]
 
-    def remove_books(self, library_id, book_id_list):
-        for book_id in book_id_list:
-            self.books[library_id].remove(book_id)
+    def remove_books(self, book_id_list):
+        for books in self.books.values():
+            for book_id in book_id_list:
+                books.remove(book_id)  # TODO: improvement potential -- reorder libraries to register next!
 
     def library_ids_in_order(self):
         """
@@ -124,14 +125,12 @@ class Scanner(object):
             books = self.book_registry.order(self.library_registry.books(library_id))
             books = books[:self.library_registry.concurrency_factor(library_id)]
 
-            self.library_registry.remove_books(library_id, books)
+            self.library_registry.remove_books(books)
             self.library_books[library_id] += books
 
             print 'library {} submits {} books: {}'.format(library_id,
-                                                                     library_registry.concurrency_factor(library_id),
-                                                                     ', '.join(books))
-
-
+                                                           library_registry.concurrency_factor(library_id),
+                                                           ', '.join(books))
 
 if __name__ == '__main__':
 
