@@ -160,8 +160,9 @@ class Scanner(object):
     def __repr__(self):
         result = '{}\n'.format(len(self.library_order))
         for library_id in self.library_order:
-            result += '{} {}\n'.format(library_id, len(self.library_books[library_id]))
-            result += ' '.join(self.library_books[library_id]) + '\n'
+            if self.library_books[library_id]:
+                result += '{} {}'.format(library_id, len(self.library_books[library_id])) + '\n'
+                result += ' '.join(self.library_books[library_id]) + '\n'
         return result
 
 if __name__ == '__main__':
