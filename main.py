@@ -116,7 +116,7 @@ class Scanner(object):
         self.submitted_book_ids = set()
 
     def next_day(self):
-        print 'day {}'.format(self.day)
+        print 'day {} of {}'.format(self.day, self.days)
 
         if self.day == self.days:
             raise StopIteration
@@ -127,7 +127,7 @@ class Scanner(object):
         # start registration of next library or update day count
         if not self.in_registration_time_left:
             if self.in_registration >= 0:
-                print 'library registration complete of library {}'.format(self.in_registration)
+                # print 'library registration complete of library {}'.format(self.in_registration)
                 self.library_order.append(self.in_registration)
                 self.library_books[self.in_registration] = list()
 
@@ -135,7 +135,7 @@ class Scanner(object):
                 library_id = self.library_queue.next()
                 self.in_registration = library_id
                 self.in_registration_time_left = self.library_registry.time_in_registration(library_id) - 1
-                print 'begin library registration of library {} will take {} more days'.format(self.in_registration, self.in_registration_time_left)
+                # print 'begin library registration of library {} will take {} more days'.format(self.in_registration, self.in_registration_time_left)
             except StopIteration:
                 # no more libraries to register
                 self.in_registration = None
@@ -152,9 +152,9 @@ class Scanner(object):
             self.library_registry.remove_books(books)
             self.library_books[library_id] += books
 
-            print 'library {} submits {} books: {}'.format(library_id,
-                                                           library_registry.concurrency_factor(library_id),
-                                                           ', '.join(books))
+            # print 'library {} submits {} books: {}'.format(library_id,
+            #                                                library_registry.concurrency_factor(library_id),
+            #                                                ', '.join(books))
 
         return self.day
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     book_registry = BookRegistry()
     library_registry = LibraryRegisry(book_registry)
 
-    file_name = 'data/b_read_on.txt'
+    file_name = 'data/f_libraries_of_the_world.txt'
     with open(file_name) as data:
         _, _, days = map(int, data.next().split())
 
@@ -178,6 +178,7 @@ if __name__ == '__main__':
             book_registry.add_book(str(book_id), int(book_weight))
 
         for library_id, line in enumerate(data):
+            # print 'parsing library {}'.format(library_id)
             _, signup_time, concurrency_factor = map(int, line.split())
             books = set(data.next().split())
             for book in books:
