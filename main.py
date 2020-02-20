@@ -61,7 +61,7 @@ class LibraryRegisry(object):
         score = sum of book score * relative delay * concurrency factor TODO: improvement potential
         """
         score = sum(map(lambda book_id: self.book_registry.score(book_id), self.books[library_id]))
-        # score *= 1 - self.signup_times[library_id] / float(max(self.signup_times.values()))
+        score *= 1 - self.signup_times[library_id] / (2.0 * max(self.signup_times.values()))
         score *= self.concurrency_factors[library_id]
 
         return score
@@ -158,15 +158,20 @@ class Scanner(object):
 
         return self.day
 
-    # def __repr__(self):
-    #
+    def __repr__(self):
+        result = '{}\n'.format(len(self.library_order))
+        for library_id in self.library_order:
+            result += '{} {}\n'.format(library_id, len(self.library_books[library_id]))
+            result += ' '.join(self.library_books[library_id]) + '\n'
+        return result
 
 if __name__ == '__main__':
 
     book_registry = BookRegistry()
     library_registry = LibraryRegisry(book_registry)
 
-    with open('data/a_example.txt') as data:
+    file_name = 'data/b_read_on.txt'
+    with open(file_name) as data:
         _, _, days = map(int, data.next().split())
 
         for book_id, book_weight in enumerate(data.next().split()):
@@ -186,3 +191,6 @@ if __name__ == '__main__':
 
     # for library_id in library_registry.library_ids_in_order():
     #     print library_id, library_registry.score(library_id)
+
+    with open(file_name + '.out.txt', 'w') as out:
+        out.write(str(scanner))
