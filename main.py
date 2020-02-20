@@ -28,36 +28,57 @@ class BookRegistry(object):
         """
 
 class LibraryRegisry(object):
-    def books(self, library_index):
-        """
-        returns the list of books_indexes in a library 
-        """
+    def __init__(self, book_registry):
+        self.book_registry = book_registry
+        self.signup_times = dict()
+        self.concurrency_factors = dict()
+        self.books = dict()
 
-    def signup_time(self, library_index):
-        """
-        returns the time to sign up that library for scanning
-        """
-        
-    def concurrency_factor(self, library_index):
-        """
-        returns the number of books a library can scan in parallel 
-        """
+    def add_library(self, library_id, signup_time, concurrency_factor, books):
+        self.signup_times[library_id] = signup_time
+        self.concurrency_factors[library_id] = concurrency_factor
+        self.books[library_id] = books
 
-    def score(self, library_index):
+    def score(self, library_id):
         """
         returns the importance score of a library
+        score = sum of book score * relative delay * concurrency factor
         """
+        score = sum(map(lambda book_id: self.book_registry.score(book_id), self.books[library_id]))
+        score *= self.signup_times[library_id] / max(self.signup_times.values())
+        score *= self.concurrency_factors[library_id]
 
-    def library_in_order(self):
+        return score
+
+    def books(self, library_id):
+        """
+        returns the books in the library
+        """
+        return self.books[library_id]
+
+    def library_ids_in_order(self):
         """
         returns the list of libraries ordered by their score
         """
+        library_ids = self.signup_times.keys()
+        library_ids = sorted(library_ids, key=lambda library_id: self.score(library_id))
+
+        return library_ids
+
 
 class Scanner(object):
     pass
 
+
 if __name__ == '__main__':
+
+    book_registry = BookRegistry()
+    library_registry = LibraryRegisry(book_registry)
+
     with open('data/a_example.txt') as data:
-        print data.next().split()
-        for line in data:
-            print line.strip()
+        print data.next().split()  # books, libraries, days
+        print data.next().split()  # book weights
+        for library_id, line in enumerate(data):
+            _, signup_time, concurrency_factor = map(int, line.split())
+            books = map(int, data.next().split())
+            library_registry.add_library(library_id, signup_time, concurrency_factor, books)
