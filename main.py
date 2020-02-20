@@ -110,7 +110,7 @@ class Scanner(object):
         self.library_order = list()
         self.days = days
         self.day = 0
-        self.in_registration = None
+        self.in_registration = -1
         self.in_registration_time_left = 0
         self.library_queue = self.library_registry.library_ids_in_order()
         self.submitted_book_ids = set()
@@ -125,15 +125,17 @@ class Scanner(object):
         self.day += 1
 
         # start registration of next library or update day count
-        if not self.in_registration or not self.in_registration_time_left:
-            if self.in_registration:
+        if not self.in_registration_time_left:
+            if self.in_registration >= 0:
+                print 'library registration complete of library {}'.format(self.in_registration)
                 self.library_order.append(self.in_registration)
                 self.library_books[self.in_registration] = list()
 
             try:
                 library_id = self.library_queue.next()
                 self.in_registration = library_id
-                self.in_registration_time_left = self.library_registry.time_in_registration(library_id)
+                self.in_registration_time_left = self.library_registry.time_in_registration(library_id) - 1
+                print 'begin library registration of library {} will take {} more days'.format(self.in_registration, self.in_registration_time_left)
             except StopIteration:
                 # no more libraries to register
                 self.in_registration = None
@@ -155,6 +157,9 @@ class Scanner(object):
                                                            ', '.join(books))
 
         return self.day
+
+    # def __repr__(self):
+    #
 
 if __name__ == '__main__':
 
